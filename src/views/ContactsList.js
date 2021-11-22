@@ -1,17 +1,43 @@
+import { useEffect, useState } from "react";
+import { List } from "semantic-ui-react/";
+import { Link } from "react-router-dom";
+
 const ContactsList = () => {
 
-    const contacts = [
-        {firstname:"Andy"},
-        {firstname:"Jane"},
-        {firstname:"Wendy"}
-    ]
-    return (
+    // let contacts = [];
+    
+    const [contacts, setContacts] = useState([])
+
+    useEffect(()=>{
+        
+        (async ()=>{
+            
+            const response = await fetch('/contacts');
+
+            const { contacts } = await response.json();
+
+            setContacts(contacts);
+        })()
+
+    },[])
+
+    return (  
+
         <div>
-            <ul>Contacts List
+            <h1>Contacts List</h1>
+            <List divided size='massive'>
                 {contacts.map(contact=>{
-                    return <li>{contact.firstname}</li>
+                    return (
+              
+                        <List.Item>
+                            <Link to={`/contact/${contact.id}`}>
+                                <List.Header as='a'>{contact.firstname} {contact.lastname}</List.Header>
+                            </Link>
+                        </List.Item>
+                     )
+                    // <li>{contact.firstname}</li>
                 })}
-            </ul>
+            </List>
         </div>
     )
 }
