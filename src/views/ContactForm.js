@@ -1,25 +1,34 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { Form, Button, Message, Table, Icon, Input} from "semantic-ui-react";
+import { Link } from "react-router-dom";
+import EmailAddresses from "./EmailAddresses";
+import { Form, Button, Message, Icon} from "semantic-ui-react";
+import PostalAddresses from "./PostalAddresses";
 
 
 const ContactForm = (props) => {
 
     const [showSaved,setShowSaved] = useState(false);
     
-    const [person, setPerson] = useState({
+    const emptyPerson = {
         firstname:"",
         lastname:"",
         id:null,
         emailaddresses:[],
         postaladdresses:[]
-    })
+    };
+
+    const [person, setPerson] = useState(emptyPerson)
     
     const { id } = useParams();
 
     useEffect(()=>{
 
         (async ()=>{
+            
+        if(!id){ 
+            return setPerson(emptyPerson);
+        }
 
             const response = await fetch("/contact/"+id,{
                 headers:{
@@ -36,14 +45,13 @@ const ContactForm = (props) => {
 
     
     const saveContact = async () =>{
-        
         const packet = {
-            method: 'POST',
-            headers: { 'contentType':'application/json'},
+            method: "POST",
+            headers: { "Content-Type":"application/json"},
             body: JSON.stringify(person)
         }
         
-        await fetch('/contact')
+        await fetch('/contact', packet)
         
         setShowSaved(true);
         
@@ -58,31 +66,17 @@ const ContactForm = (props) => {
         setPerson({...person})
     }
 
-    const handleEmailAddressChange = ({field, idx}) => {
-        const {value} = field;
+    
 
-        person.emailaddresses[idx] = value;
-
-        setPerson({...person});
-    }
-
-    const addEmailAddressField = () => {
-        person.emailaddresses.push("");
-
-        setPerson({...person});
-    }
-
-    const removeEmailAddressField = (idx) => {
-        person.emailaddresses.splice(idx, 1)
-
-        setPerson({...person});
-    }
-
-    const {firstname, lastname, emailaddresses, postaladdresses} = person;
+    const {firstname, lastname} = person;
     return (
         <div>
+            <Link to='/'>
+                <Button icon>
+                    <Icon name="left arrow"/>
+                </Button>
+            </Link>
             <Form onSubmit={saveContact}>
-
                 <Form.Field>
                     <Form.Input
                         name="firstname"
@@ -91,7 +85,6 @@ const ContactForm = (props) => {
                         onChange={(e,field)=>handleFieldChange(field)}
                     />
                 </Form.Field>
-
                 <Form.Field>
                     <Form.Input
                         name="lastname"
@@ -100,40 +93,10 @@ const ContactForm = (props) => {
                         onChange={(e,field)=>handleFieldChange(field)} 
                     />
                 </Form.Field>
-
-                <Table>
-                    <Table.Header>
-                        <Table.Row>
-                            <Table.HeaderCell>
-                                <Button icon type="button" onClick={addEmailAddressField}>
-                                    <Icon name='plus'></Icon>
-                                </Button>
-                            </Table.HeaderCell>
-                        </Table.Row>
-                    </Table.Header>
-                    {emailaddresses?.map((item,idx)=>{
-                        return(
-                            <Table.Body>
-                                <Table.Row>
-                                    <Table.Cell>
-                                        <Button icon type="button" onClick={()=>{removeEmailAddressField(idx)}}>
-                                            <Icon name='minus'></Icon>
-                                        </Button>
-                                        <Input
-                                            name = 'emailaddresses'
-                                            placeholder = 'email@example.com'
-                                            value = {item}
-                                            onChange = {(e,field) => handleEmailAddressChange({field,idx})}
-                                        ></Input>
-                                    </Table.Cell>
-                                </Table.Row>
-                            </Table.Body>)
-                    })}
-                </Table>
-
+                <EmailAddresses props={{person, setPerson}}/>
+                <PostalAddresses props={{person, setPerson}}/>
                 <Button>Save</Button>
             </Form>
-
             {showSaved?<Message>Saved</Message>:null}
         </div>
     )
